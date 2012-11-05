@@ -58,6 +58,27 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
      )
   end
 
+  # url db [ id ]
+  #
+  # url for a backup
+  #
+  def url
+    client = client_from_attachment( hpg_resolve(shift_argument) )
+    id = shift_argument
+
+    if id
+      b = client.get_backup(id)
+    else
+      b = client.get_latest_backup
+    end
+
+    if $stdout.isatty
+      display '"'+b['public_url']+'"'
+    else
+      display b['public_url']
+    end
+  end
+
   def client_from_attachment(attachment)
     pgbackups_url = json_decode(RestClient.get("#{PGSNAPSHOTS_URL}/client/resource/#{attachment.resource_name}"))['pgbackups_url']
     Heroku::Client::Pgbackups.new(pgbackups_url)
