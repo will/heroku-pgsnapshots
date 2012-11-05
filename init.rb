@@ -1,6 +1,6 @@
 require 'uri'
 require "heroku/command/base"
-PGSNAPSHOTS_URL = ENV['PGSNAPSHOTS_URL'] || 'http://localhost:3000'
+PGSNAPSHOTS_URL = ENV['PGSNAPSHOTS_URL'] || 'https://pgsnapshots.herokuapp.com'
 
 class Heroku::Command::Pgsnapshots < Heroku::Command::Base
   include Heroku::Helpers::HerokuPostgresql
@@ -31,6 +31,18 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
     action("Activating #{attachment.config_var} (#{attachment.resource_name})") do
       RestClient.post( authed_pgsnapshot_url('/client/resource'),
                       json_encode({"name" => attachment.resource_name}) )
+    end
+  end
+
+  # on
+  #
+  # deactive a resource
+  #
+  def off
+    attachment = hpg_resolve(shift_argument)
+    return unless confirm_command(attachment.config_var, 'Deactiving will destroy all backups')
+    action("Dectivating #{attachment.config_var} (#{attachment.resource_name})") do
+      RestClient.delete( authed_pgsnapshot_url("/client/resource/#{attachment.resource_name}"))
     end
   end
 
