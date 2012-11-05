@@ -29,7 +29,7 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
   def on
     attachment = hpg_resolve(shift_argument)
     action("Activating #{attachment.config_var} (#{attachment.resource_name})") do
-      RestClient.post(PGSNAPSHOTS_URL + '/client/resource',
+      RestClient.post( authed_pgsnapshot_url('/client/resource'),
                       json_encode({"name" => attachment.resource_name}) )
     end
   end
@@ -80,11 +80,16 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
     end
   end
 
-  def client_from_attachment(attachment)
-    uri = URI.parse "#{PGSNAPSHOTS_URL}/client/resource/#{attachment.resource_name}"
+  def authed_pgsnapshot_url(path)
+    uri = URI.parse "#{PGSNAPSHOTS_URL}#{path}"
     uri.user     = Heroku::Auth.user.gsub '@', '%40'
     uri.password = Heroku::Auth.password
-    pgbackups_url = json_decode(RestClient.get uri.to_s)['pgbackups_url']
+    uri.to_s
+  end
+
+  def client_from_attachment(attachment)
+    url = authed_pgsnapshot_url "/client/resource/#{attachment.resource_name}"
+    pgbackups_url = json_decode(RestClient.get url)['pgbackups_url']
     Heroku::Client::Pgbackups.new(pgbackups_url)
   end
 
@@ -103,7 +108,7 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
   def status(name)
     @memo = {}
     return @memo[name] if @memo[name]
-    RestClient.get(PGSNAPSHOTS_URL + "/client/resource/#{name}") do |response|
+    RestClient.get( authed_pgsnapshot_url("/client/resource/#{name}")) do |response|
       if response.code == 200
         @memo[name] = 'active'
       elsif response.code == 404
