@@ -4,13 +4,7 @@ PGSNAPSHOTS_URL = 'http://localhost:3000'
 class Heroku::Command::Pgsnapshots < Heroku::Command::Base
   include Heroku::Helpers::HerokuPostgresql
 
-  class HerokuPostgresql::Attachment
-    def resource
-      @raw['resource']
-    end
-  end
-
-  # pgna
+  # index
   #
   # show status
   #
@@ -24,6 +18,18 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
 
     info.each_with_index.each do |(varname, resname, status)|
       puts [varname.ljust(varname_max), resname.ljust(resname_max), status].join ' '
+    end
+  end
+
+  # on
+  #
+  # active a resource
+  #
+  def on
+    attachment = hpg_resolve(shift_argument)
+    action("Activating #{attachment.config_var} (#{attachment.resource_name})") do
+      RestClient.post(PGSNAPSHOTS_URL + '/client/resource',
+                      json_encode({"name" => attachment.resource_name}) )
     end
   end
 
