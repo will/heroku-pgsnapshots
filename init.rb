@@ -1,3 +1,4 @@
+require 'uri'
 require "heroku/command/base"
 PGSNAPSHOTS_URL = ENV['PGSNAPSHOTS_URL'] || 'http://localhost:3000'
 
@@ -80,7 +81,10 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
   end
 
   def client_from_attachment(attachment)
-    pgbackups_url = json_decode(RestClient.get("#{PGSNAPSHOTS_URL}/client/resource/#{attachment.resource_name}"))['pgbackups_url']
+    uri = URI.parse "#{PGSNAPSHOTS_URL}/client/resource/#{attachment.resource_name}"
+    uri.user     = Heroku::Auth.user.gsub '@', '%40'
+    uri.password = Heroku::Auth.password
+    pgbackups_url = json_decode(RestClient.get uri.to_s)['pgbackups_url']
     Heroku::Client::Pgbackups.new(pgbackups_url)
   end
 
