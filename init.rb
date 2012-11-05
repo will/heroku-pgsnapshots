@@ -33,6 +33,45 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
     end
   end
 
+  # list
+  #
+  # list backups
+  #
+  def list
+    attachment = hpg_resolve(shift_argument)
+    pgbackups_url = json_decode(RestClient.get("#{PGSNAPSHOTS_URL}/client/resource/#{attachment.resource_name}"))['pgbackups_url']
+     client = Heroku::Client::Pgbackups.new(pgbackups_url)
+
+     backups = []
+     client.get_transfers.each do |t|
+       next unless t['error_at'].nil? && t['destroyed_at'].nil? && backup_types.include?(t['to_name'])
+       backups << {
+         'id'         => backup_name(t['to_url']),
+         'created_at' => t['created_at'],
+         'status'     => transfer_status(t),
+         'size'       => t['size']
+       }
+     end
+
+     display_table(
+       backups,
+       %w[id created_at status size],
+       ["ID", "Backup Time", "Status", "Size"]
+     )
+  end
+
+  def backup_types
+    Heroku::Command::Pgbackups.new.send(:backup_types)
+  end
+
+  def backup_name(name)
+    Heroku::Command::Pgbackups.new.send(:backup_name, name)
+  end
+
+  def transfer_status(t)
+    Heroku::Command::Pgbackups.new.send(:transfer_status, t)
+  end
+
   def status(name)
     @memo = {}
     return @memo[name] if @memo[name]
