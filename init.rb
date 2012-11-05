@@ -1,5 +1,5 @@
 require "heroku/command/base"
-PGSNAPSHOTS_URL = 'http://localhost:3000'
+PGSNAPSHOTS_URL = ENV['PGSNAPSHOTS_URL'] || 'http://localhost:3000'
 
 class Heroku::Command::Pgsnapshots < Heroku::Command::Base
   include Heroku::Helpers::HerokuPostgresql
