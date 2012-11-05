@@ -38,9 +38,7 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
   # list backups
   #
   def list
-    attachment = hpg_resolve(shift_argument)
-    pgbackups_url = json_decode(RestClient.get("#{PGSNAPSHOTS_URL}/client/resource/#{attachment.resource_name}"))['pgbackups_url']
-     client = Heroku::Client::Pgbackups.new(pgbackups_url)
+    client = client_from_attachment( hpg_resolve(shift_argument) )
 
      backups = []
      client.get_transfers.each do |t|
@@ -58,6 +56,11 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
        %w[id created_at status size],
        ["ID", "Backup Time", "Status", "Size"]
      )
+  end
+
+  def client_from_attachment(attachment)
+    pgbackups_url = json_decode(RestClient.get("#{PGSNAPSHOTS_URL}/client/resource/#{attachment.resource_name}"))['pgbackups_url']
+    Heroku::Client::Pgbackups.new(pgbackups_url)
   end
 
   def backup_types
