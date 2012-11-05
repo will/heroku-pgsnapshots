@@ -106,7 +106,7 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
   end
 
   def status(name)
-    @memo = {}
+    @memo ||= Hash.new
     return @memo[name] if @memo[name]
     RestClient.get( authed_pgsnapshot_url("/client/resource/#{name}")) do |response|
       if response.code == 200
