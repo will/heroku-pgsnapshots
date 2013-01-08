@@ -122,6 +122,7 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
     @memo ||= Hash.new
     return @memo[name] if @memo[name]
     RestClient.get( authed_pgsnapshot_url("/client/resource/#{name}")) do |response|
+      puts response
       if response.code == 200
         @memo[name] = 'active'
       elsif response.code == 404
