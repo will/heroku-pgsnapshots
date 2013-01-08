@@ -1,5 +1,6 @@
 require 'uri'
 require "heroku/command/base"
+require 'rest_client'
 PGSNAPSHOTS_URL = ENV['PGSNAPSHOTS_URL'] || 'https://pgsnapshots.herokuapp.com'
 
 class Heroku::Command::Pgsnapshots < Heroku::Command::Base
