@@ -60,7 +60,7 @@ class Heroku::Command::Pgsnapshots < Heroku::Command::Base
        backups << {
          'id'         => backup_name(t['to_url']),
          'created_at' => t['created_at'],
-         'status'     => 'UNKNOWN',#transfer_status(t),
+         'status'     => transfer_status(t),
          'size'       => t['size']
        }
      end
